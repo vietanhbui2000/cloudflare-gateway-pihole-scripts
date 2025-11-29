@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: "mrrfv/cloudflare-gateway-pihole-scripts"
           ref: "v1"
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version-file: ".node-version"
 
-      - name: Install npm dependencies
+      - name: Install Npm dependencies
         run: npm ci
 
       - name: Download allowlists
@@ -43,7 +43,7 @@ jobs:
         env:
           BLOCKLIST_URLS: ${{ vars.BLOCKLIST_URLS }}
 
-      - name: Create/Update rules and lists
+      - name: Create/Update lists and rules
         run: npm run cloudflare-create
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
