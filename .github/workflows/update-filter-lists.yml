@@ -28,9 +28,9 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: ".node-version"
+          node-version: 'lts/*'
 
-      - name: Install Npm dependencies
+      - name: Install npm dependencies
         run: npm ci
 
       - name: Download allowlists
