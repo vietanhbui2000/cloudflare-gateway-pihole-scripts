@@ -67,7 +67,7 @@ Policies with these names that already exist are taken over and updated. The scr
 
 After syncing, the script keeps its own policies in this order among themselves: `CGPS Allowed Domains`, `CGPS Blocked Domains`, `CGPS Filter Lists`, then the `CGPS Rewrite:` policies, so your allowed domains win over the blocked domains and the filter lists. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
 
-Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy managed by CGPS (<owner/repo>).`, filled from `GITHUB_REPOSITORY` in GitHub Actions, or `Policy managed by CGPS.` elsewhere.
+Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy created and managed by Cloudflare Gateway Pi-hole Scripts. DO NOT change the name, edit the details of this policy.`
 
 ## Example usage
 

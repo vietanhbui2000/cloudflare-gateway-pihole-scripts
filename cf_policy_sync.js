@@ -9,7 +9,6 @@ import { deleteZeroTrustRule, getZeroTrustRules, saveDNSPolicy, updateZeroTrustR
 import {
   BLOCK_PAGE_ENABLED,
   DRY_RUN,
-  POLICY_DESCRIPTION,
   POLICY_NAME,
   ALLOWED_DOMAINS,
   BLOCKED_DOMAINS,
@@ -49,7 +48,7 @@ if (ALLOWED_DOMAINS) {
   checkParsed("ALLOWED_DOMAINS", domains.length, invalid);
   policies.push({
     name: POLICY_NAME.ALLOWED_DOMAINS,
-    description: POLICY_DESCRIPTION,
+    description: "Policy created and managed by Cloudflare Gateway Pi-hole Scripts. DO NOT change the name, edit the details of this policy.",
     action: "allow",
     traffic: buildDomainsExpression(domains),
     rule_settings: {},
@@ -61,7 +60,7 @@ if (BLOCKED_DOMAINS) {
   checkParsed("BLOCKED_DOMAINS", domains.length, invalid);
   policies.push({
     name: POLICY_NAME.BLOCKED_DOMAINS,
-    description: POLICY_DESCRIPTION,
+    description: "Policy created and managed by Cloudflare Gateway Pi-hole Scripts. DO NOT change the name, edit the details of this policy.",
     action: "block",
     traffic: buildDomainsExpression(domains),
     rule_settings: { block_page_enabled: BLOCK_PAGE_ENABLED },
@@ -74,7 +73,7 @@ if (REWRITTEN_DOMAINS) {
   for (const { domain, ips } of rewrites) {
     policies.push({
       name: `${POLICY_NAME.REWRITE_PREFIX}${domain}`,
-      description: POLICY_DESCRIPTION,
+      description: "Policy created and managed by Cloudflare Gateway Pi-hole Scripts. DO NOT change the name, edit the details of this policy.",
       action: "override",
       traffic: buildHostExpression(domain),
       rule_settings: { override_ips: ips },
