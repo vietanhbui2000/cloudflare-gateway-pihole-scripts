@@ -1,7 +1,7 @@
 // Syncs small personal DNS policies from three single-URL sources:
 //   ALLOWLIST_URL -> one "allow" policy, domains written inline in the rule
 //   BLOCKLIST_URL -> one "block" policy, domains written inline in the rule
-//   REWRITE_URL   -> one "override" policy per line, e.g. "medium.com == 162.159.152.4,162.159.153.4"
+//   REWRITE_URL   -> one "override" policy per domain, from hosts lines, e.g. "162.159.152.4 medium.com"
 // Unset variables are skipped and their policies are left alone.
 // After syncing, CGPS policies are kept in order among themselves: allowlist, blocklist, CGPS Filter Lists, rewrites.
 import { deleteZeroTrustRule, getZeroTrustRules, saveDNSPolicy, updateZeroTrustRulePrecedence } from "./lib/api.js";

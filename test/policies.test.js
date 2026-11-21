@@ -29,22 +29,36 @@ test("builds the inline Gateway expression", () => {
   );
 });
 
-test("parses rewrite lines and rejects malformed ones", () => {
+test("parses hosts lines into one rewrite per domain with merged IPs", () => {
   const text = [
-    "medium.com == 162.159.152.4, 162.159.153.4",
-    "v6.example.com==2606:4700::6810:84e5",
-    "medium.com == 162.159.152.4,162.159.152.4",
-    "bad.example.com == 999.1.1.1",
-    "noips.example.com ==",
-    "missing-separator.com 1.1.1.1",
-    "a.com == 1.1.1.1 == 2.2.2.2",
+    "# Rewrites",
+    "162.159.152.4 medium.com",
+    "162.159.153.4\tMedium.com # second IP",
+    "162.159.152.4 medium.com",
+    "2606:4700::6810:84e5 v6.example.com",
+    "1.2.3.4 a.example.com b.example.com",
   ].join("\n");
   const { rewrites, invalid } = parseRewrites(text);
   assert.deepEqual(rewrites, [
-    { domain: "medium.com", ips: ["162.159.152.4"] },
+    { domain: "a.example.com", ips: ["1.2.3.4"] },
+    { domain: "b.example.com", ips: ["1.2.3.4"] },
+    { domain: "medium.com", ips: ["162.159.152.4", "162.159.153.4"] },
     { domain: "v6.example.com", ips: ["2606:4700::6810:84e5"] },
   ]);
-  assert.equal(invalid.length, 4);
+  assert.deepEqual(invalid, []);
+});
+
+test("rejects malformed hosts lines", () => {
+  const text = [
+    "medium.com 162.159.152.4",
+    "999.1.1.1 bad.example.com",
+    "1.1.1.1",
+    "127.0.0.1 localhost",
+    "1.1.1.1 good.example.com not_a_domain",
+  ].join("\n");
+  const { rewrites, invalid } = parseRewrites(text);
+  assert.deepEqual(rewrites, []);
+  assert.equal(invalid.length, 5);
 });
 
 const rule = (name, precedence, filters = ["dns"]) => ({ name, precedence, filters });

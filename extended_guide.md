@@ -54,13 +54,14 @@ Same format, becomes one **Block** policy named `Blocklist (manual)`.
 
 #### `REWRITE_URL`
 
-One rewrite per line, `domain == ip[,ip...]`:
+Standard hosts lines, `ip domain [domain...]`, the same format as `/etc/hosts`, Pi-hole and AdGuard Home. For several IPs, repeat the domain on one line per IP:
 
 ```
-medium.com == 162.159.152.4,162.159.153.4
+162.159.152.4 medium.com
+162.159.153.4 medium.com
 ```
 
-Each line becomes an **Override** policy named `Rewrite: <domain>` that answers queries for that exact hostname with the given IPs. Removing a line deletes the policy the script created for it.
+Each domain becomes one **Override** policy named `Rewrite: <domain>` that answers queries for that exact hostname with all of its IPs. Removing every line for a domain deletes the policy the script created for it.
 
 Policies with these names that already exist are taken over and updated. The script keeps each policy's on/off switch from the dashboard.
 
