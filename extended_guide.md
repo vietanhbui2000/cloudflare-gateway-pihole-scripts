@@ -40,6 +40,32 @@ The Cloudflare list item limit is the maximum number of items (blocked domains) 
 
 Processes block/allow lists without actually adding/removing domains from Cloudflare. Avoid using this option unless you know what you are doing.
 
+### Personal DNS policies
+
+These run at the end of `npm run cloudflare-create` (or alone with `npm run cloudflare-create:policies`). Each takes one URL. Unlike `ALLOWLIST_URLS` and `BLOCKLIST_URLS`, the domains are written straight into the policy instead of Zero Trust lists, so keep these files short. Leaving a variable unset leaves its policies untouched. If a file has no valid entries, the script stops without changing anything.
+
+#### `ALLOWLIST_URL`
+
+A file of domains (plain, hosts or adblock format) that becomes one **Allow** policy named `Allowlist (manual)`, for example `any(dns.domains[*] in {"analytics.google.com" "example.com"})`. Subdomains match too. Keep this policy above `CGPS Filter Lists` in the dashboard so it wins.
+
+#### `BLOCKLIST_URL`
+
+Same format, becomes one **Block** policy named `Blocklist (manual)`.
+
+#### `REWRITE_URL`
+
+One rewrite per line, `domain == ip[,ip...]`:
+
+```
+medium.com == 162.159.152.4,162.159.153.4
+```
+
+Each line becomes an **Override** policy named `Rewrite: <domain>` that answers queries for that exact hostname with the given IPs. Removing a line deletes the policy the script created for it.
+
+Policies with these names that already exist are taken over and updated. The script keeps each policy's position and on/off switch from the dashboard.
+
+Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy managed by CGPS (<owner/repo>).`, filled from `GITHUB_REPOSITORY` in GitHub Actions, or `Policy managed by CGPS.` elsewhere. Rewrite policies are only deleted when their description starts with `Policy managed by CGPS`, so policies made by hand are never removed.
+
 ## Example usage
 
 These commands should be run in a terminal.

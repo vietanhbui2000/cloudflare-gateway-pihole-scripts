@@ -21,9 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          repository: "mrrfv/cloudflare-gateway-pihole-scripts"
-          ref: "v1"
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -50,6 +47,9 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_LIST_ITEM_LIMIT: ${{ secrets.CLOUDFLARE_LIST_ITEM_LIMIT }}
           BLOCK_PAGE_ENABLED: ${{ vars.BLOCK_PAGE_ENABLED }}
+          ALLOWLIST_URL: ${{ vars.ALLOWLIST_URL }}
+          BLOCKLIST_URL: ${{ vars.BLOCKLIST_URL }}
+          REWRITE_URL: ${{ vars.REWRITE_URL }}
 
   keepalive:
     if: github.event_name == 'schedule'
