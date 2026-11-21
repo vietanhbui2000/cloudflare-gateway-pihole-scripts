@@ -3,7 +3,8 @@
 //   BLOCKLIST_URL -> one "block" policy, domains written inline in the rule
 //   REWRITE_URL   -> one "override" policy per line, e.g. "medium.com == 162.159.152.4,162.159.153.4"
 // Unset variables are skipped and their policies are left alone.
-import { deleteZeroTrustRule, getZeroTrustRules, saveDNSPolicy } from "./lib/api.js";
+// After syncing, CGPS policies are kept in order among themselves: allowlist, blocklist, CGPS Filter Lists, rewrites.
+import { deleteZeroTrustRule, getZeroTrustRules, saveDNSPolicy, updateZeroTrustRulePrecedence } from "./lib/api.js";
 import {
   BLOCK_PAGE_ENABLED,
   DRY_RUN,
@@ -19,6 +20,7 @@ import {
   buildHostExpression,
   parseDomainList,
   parseRewrites,
+  planPolicyOrder,
 } from "./lib/policies.js";
 import { notifyWebhook } from "./lib/utils.js";
 
@@ -92,7 +94,7 @@ if (DRY_RUN) {
 
 const { result: rules = [] } = await getZeroTrustRules();
 const rulesByName = new Map(rules.map((rule) => [rule.name, rule]));
-const counts = { created: 0, updated: 0, unchanged: 0, deleted: 0 };
+const counts = { created: 0, updated: 0, unchanged: 0, deleted: 0, reordered: 0 };
 
 for (const policy of policies) {
   const existing = rulesByName.get(policy.name);
@@ -119,6 +121,24 @@ if (POLICY_REWRITE_URL) {
     await deleteZeroTrustRule(rule.id);
     counts.deleted++;
   }
+}
+
+// Keep CGPS policies in policyRank order; policies made by hand keep their positions.
+// New rules land at the bottom, so this runs after every create. Precedence values must be unique,
+// so moved rules first go to temporary values above every rule, then to their final values;
+// this avoids clashing with a rule that hasn't moved yet.
+const { result: currentRules = [] } = await getZeroTrustRules();
+const moves = planPolicyOrder(currentRules);
+if (moves.length) {
+  const temporaryBase = Math.max(...currentRules.map((rule) => rule.precedence)) + 1000;
+  for (const [index, { rule }] of moves.entries()) {
+    await updateZeroTrustRulePrecedence(rule, temporaryBase + index);
+  }
+  for (const { rule, precedence } of moves) {
+    await updateZeroTrustRulePrecedence(rule, precedence);
+  }
+  counts.reordered = moves.length;
+  console.log(`Reordered ${moves.length} CGPS policies: ${moves.map(({ rule }) => `"${rule.name}"`).join(", ")}`);
 }
 
 const summary = Object.entries(counts).map(([key, value]) => `${value} ${key}`).join(", ");

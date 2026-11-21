@@ -62,7 +62,9 @@ medium.com == 162.159.152.4,162.159.153.4
 
 Each line becomes an **Override** policy named `Rewrite: <domain>` that answers queries for that exact hostname with the given IPs. Removing a line deletes the policy the script created for it.
 
-Policies with these names that already exist are taken over and updated. The script keeps each policy's position and on/off switch from the dashboard.
+Policies with these names that already exist are taken over and updated. The script keeps each policy's on/off switch from the dashboard.
+
+After syncing, the script keeps its own policies in this order among themselves: `Allowlist (manual)`, `Blocklist (manual)`, `CGPS Filter Lists`, then the `Rewrite:` policies, so your personal allows win over every block. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
 
 Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy managed by CGPS (<owner/repo>).`, filled from `GITHUB_REPOSITORY` in GitHub Actions, or `Policy managed by CGPS.` elsewhere. Rewrite policies are only deleted when their description starts with `Policy managed by CGPS`, so policies made by hand are never removed.
 
