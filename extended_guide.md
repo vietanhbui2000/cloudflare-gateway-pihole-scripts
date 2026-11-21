@@ -63,7 +63,7 @@ Standard hosts lines, `ip domain [domain...]`, the same format as `/etc/hosts`, 
 
 Each domain becomes one **Override** policy named `CGPS Rewrite: <domain>` that answers queries for that exact hostname with all of its IPs. Removing every line for a domain deletes its `CGPS Rewrite:` policy.
 
-Policies with these names that already exist are taken over and updated. The script keeps each policy's on/off switch from the dashboard.
+Policies with these names that already exist are taken over. Every run replaces their whole content with what your lists say, so edits made in the dashboard are overwritten. Only each policy's on/off switch is kept.
 
 After syncing, the script keeps its own policies in this order among themselves: `CGPS Allowed Domains`, `CGPS Blocked Domains`, `CGPS Filter Lists`, then the `CGPS Rewrite:` policies, so your allowed domains win over the blocked domains and the filter lists. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
 

@@ -96,12 +96,12 @@ if (DRY_RUN) {
 
 const { result: rules = [] } = await getZeroTrustRules();
 const rulesByName = new Map(rules.map((rule) => [rule.name, rule]));
-const counts = { created: 0, updated: 0, unchanged: 0, deleted: 0, reordered: 0 };
+const counts = { created: 0, updated: 0, deleted: 0, reordered: 0 };
 
 for (const policy of policies) {
   const outcome = await saveDNSPolicy(rulesByName.get(policy.name), policy);
   counts[outcome]++;
-  if (outcome !== "unchanged") console.log(`${outcome[0].toUpperCase()}${outcome.slice(1)} "${policy.name}"`);
+  console.log(`${outcome[0].toUpperCase()}${outcome.slice(1)} "${policy.name}"`);
 }
 
 // Remove CGPS rewrite policies whose domain is gone from REWRITTEN_DOMAINS.
