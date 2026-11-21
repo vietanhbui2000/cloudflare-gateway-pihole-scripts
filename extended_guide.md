@@ -42,17 +42,17 @@ Processes block/allow lists without actually adding/removing domains from Cloudf
 
 ### Manual DNS policies
 
-These run at the end of `npm run cloudflare-create` (or alone with `npm run cloudflare-create:policies`). Each takes one URL. Unlike `ALLOWLIST_URLS` and `BLOCKLIST_URLS`, the domains are written straight into the policy instead of Zero Trust lists, so keep these files short. Leaving a variable unset leaves its policies untouched. If a file has no valid entries, the script stops without changing anything.
+These run at the end of `npm run cloudflare-create` (or alone with `npm run cloudflare-create:policies`). Each variable takes entries directly, one per line, or the URL of a filter list. Unlike `ALLOWLIST_URLS` and `BLOCKLIST_URLS`, the domains are written straight into the policy instead of Zero Trust lists, so keep these lists short. Leaving a variable unset leaves its policies untouched. If a list has no valid entries, the script stops without changing anything.
 
-#### `ALLOWLIST_URL`
+#### `ALLOWED_DOMAINS`
 
-A file of domains (plain, hosts or adblock format) that becomes one **Allow** policy named `Allowlist (manual)`, for example `any(dns.domains[*] in {"analytics.google.com" "example.com"})`. Subdomains match too. Keep this policy above `CGPS Filter Lists` in the dashboard so it wins.
+Domains (plain, hosts or adblock format) that become one **Allow** policy named `CGPS Allowed Domains`. Subdomains are allowed too.
 
-#### `BLOCKLIST_URL`
+#### `BLOCKED_DOMAINS`
 
-Same format, becomes one **Block** policy named `Blocklist (manual)`.
+Same format, becomes one **Block** policy named `CGPS Blocked Domains`.
 
-#### `REWRITE_URL`
+#### `REWRITTEN_DOMAINS`
 
 Standard hosts lines, `ip domain [domain...]`, the same format as `/etc/hosts`, Pi-hole and AdGuard Home. For several IPs, repeat the domain on one line per IP:
 
@@ -61,13 +61,13 @@ Standard hosts lines, `ip domain [domain...]`, the same format as `/etc/hosts`, 
 162.159.153.4 medium.com
 ```
 
-Each domain becomes one **Override** policy named `Rewrite: <domain>` that answers queries for that exact hostname with all of its IPs. Removing every line for a domain deletes the policy the script created for it.
+Each domain becomes one **Override** policy named `CGPS Rewrite: <domain>` that answers queries for that exact hostname with all of its IPs. Removing every line for a domain deletes its `CGPS Rewrite:` policy.
 
 Policies with these names that already exist are taken over and updated. The script keeps each policy's on/off switch from the dashboard.
 
-After syncing, the script keeps its own policies in this order among themselves: `Allowlist (manual)`, `Blocklist (manual)`, `CGPS Filter Lists`, then the `Rewrite:` policies, so your manual allows win over every block. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
+After syncing, the script keeps its own policies in this order among themselves: `CGPS Allowed Domains`, `CGPS Blocked Domains`, `CGPS Filter Lists`, then the `CGPS Rewrite:` policies, so your allowed domains win over the blocked domains and the filter lists. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
 
-Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy managed by CGPS (<owner/repo>).`, filled from `GITHUB_REPOSITORY` in GitHub Actions, or `Policy managed by CGPS.` elsewhere. Rewrite policies are only deleted when their description starts with `Policy managed by CGPS`, so policies made by hand are never removed.
+Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy managed by CGPS (<owner/repo>).`, filled from `GITHUB_REPOSITORY` in GitHub Actions, or `Policy managed by CGPS.` elsewhere.
 
 ## Example usage
 
