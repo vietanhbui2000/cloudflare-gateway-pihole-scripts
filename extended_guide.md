@@ -40,7 +40,7 @@ The Cloudflare list item limit is the maximum number of items (blocked domains) 
 
 Processes block/allow lists without actually adding/removing domains from Cloudflare. Avoid using this option unless you know what you are doing.
 
-### Personal DNS policies
+### Manual DNS policies
 
 These run at the end of `npm run cloudflare-create` (or alone with `npm run cloudflare-create:policies`). Each takes one URL. Unlike `ALLOWLIST_URLS` and `BLOCKLIST_URLS`, the domains are written straight into the policy instead of Zero Trust lists, so keep these files short. Leaving a variable unset leaves its policies untouched. If a file has no valid entries, the script stops without changing anything.
 
@@ -65,7 +65,7 @@ Each domain becomes one **Override** policy named `Rewrite: <domain>` that answe
 
 Policies with these names that already exist are taken over and updated. The script keeps each policy's on/off switch from the dashboard.
 
-After syncing, the script keeps its own policies in this order among themselves: `Allowlist (manual)`, `Blocklist (manual)`, `CGPS Filter Lists`, then the `Rewrite:` policies, so your personal allows win over every block. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
+After syncing, the script keeps its own policies in this order among themselves: `Allowlist (manual)`, `Blocklist (manual)`, `CGPS Filter Lists`, then the `Rewrite:` policies, so your manual allows win over every block. It only swaps them among the positions they already hold, so policies you created yourself keep their exact positions and are never edited. A correctly ordered list is left alone.
 
 Every policy these scripts write, including `CGPS Filter Lists`, gets the description `Policy managed by CGPS (<owner/repo>).`, filled from `GITHUB_REPOSITORY` in GitHub Actions, or `Policy managed by CGPS.` elsewhere. Rewrite policies are only deleted when their description starts with `Policy managed by CGPS`, so policies made by hand are never removed.
 
