@@ -17,10 +17,13 @@ import {
 import {
   buildDomainsExpression,
   buildHostExpression,
+  countChanges,
+  countRewriteEdits,
   isSourceUrl,
   parseDomainList,
   parseRewrites,
   planPolicyOrder,
+  policyEntries,
 } from "./lib/policies.js";
 import { notifyWebhook } from "./lib/utils.js";
 
@@ -97,23 +100,41 @@ if (DRY_RUN) {
 const { result: rules = [] } = await getZeroTrustRules();
 const rulesByName = new Map(rules.map((rule) => [rule.name, rule]));
 const counts = { created: 0, updated: 0, deleted: 0, reordered: 0 };
+const isRewrite = ({ name }) => name.startsWith(POLICY_NAME.REWRITE_PREFIX);
+
+// Logs in the same style as the CGPS lists: 'Updated "CGPS Blocked Domains": 3 additions, 1 removals'.
+// The rewrite line also counts edits: domains that stay but answer with different IPs.
+const logChanges = (outcome, name, before, after, edits) => {
+  const { additions, removals } = countChanges(before, after);
+  const counted = [`${additions} additions`, ...(edits === undefined ? [] : [`${edits} edits`]), `${removals} removals`];
+  console.log(`${outcome[0].toUpperCase()}${outcome.slice(1)} "${name}": ${counted.join(", ")}`);
+};
 
 for (const policy of policies) {
-  const outcome = await saveDNSPolicy(rulesByName.get(policy.name), policy);
+  const existing = rulesByName.get(policy.name);
+  const outcome = await saveDNSPolicy(existing, policy);
   counts[outcome]++;
-  console.log(`${outcome[0].toUpperCase()}${outcome.slice(1)} "${policy.name}"`);
+  if (!isRewrite(policy)) logChanges(outcome, policy.name, policyEntries(existing), policyEntries(policy));
 }
 
 // Remove CGPS rewrite policies whose domain is gone from REWRITTEN_DOMAINS.
 // Policies made by hand don't use the CGPS prefix, so they're never deleted.
+// All rewrites are logged as one line, since each domain is its own policy.
 if (REWRITTEN_DOMAINS) {
   const wanted = new Set(policies.map(({ name }) => name));
-  const stale = rules.filter((rule) => rule.name.startsWith(POLICY_NAME.REWRITE_PREFIX) && !wanted.has(rule.name));
-  for (const rule of stale) {
-    console.log(`Deleting "${rule.name}" (no longer in REWRITTEN_DOMAINS)`);
+  const existingRewrites = rules.filter(isRewrite);
+  const rewrites = policies.filter(isRewrite);
+  for (const rule of existingRewrites.filter(({ name }) => !wanted.has(name))) {
     await deleteZeroTrustRule(rule.id);
     counts.deleted++;
   }
+  logChanges(
+    existingRewrites.length ? "updated" : "created",
+    POLICY_NAME.REWRITE_PREFIX.replace(/: $/, ""),
+    existingRewrites.flatMap(policyEntries),
+    rewrites.flatMap(policyEntries),
+    countRewriteEdits(existingRewrites, rewrites)
+  );
 }
 
 // Keep CGPS policies in policyRank order; policies made by hand keep their positions.

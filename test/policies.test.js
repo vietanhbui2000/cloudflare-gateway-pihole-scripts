@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildDomainsExpression, isSourceUrl, parseDomainList, parseRewrites, planPolicyOrder } from "../lib/policies.js";
+import {
+  buildDomainsExpression,
+  buildHostExpression,
+  countChanges,
+  countRewriteEdits,
+  isSourceUrl,
+  parseDomainList,
+  parseRewrites,
+  planPolicyOrder,
+  policyEntries,
+} from "../lib/policies.js";
 
 test("parses mixed domain list formats into a sorted, unique list", () => {
   const text = [
@@ -68,6 +78,34 @@ test("rejects malformed hosts lines", () => {
   const { rewrites, invalid } = parseRewrites(text);
   assert.deepEqual(rewrites, []);
   assert.equal(invalid.length, 5);
+});
+
+test("counts added and removed domains in an allow or block policy", () => {
+  const before = policyEntries({ action: "block", traffic: buildDomainsExpression(["a.com", "b.com", "c.com"]) });
+  const after = policyEntries({ action: "block", traffic: buildDomainsExpression(["a.com", "d.com"]) });
+  assert.deepEqual(countChanges(before, after), { additions: 1, removals: 2 });
+  assert.deepEqual(countChanges([], after), { additions: 2, removals: 0 });
+});
+
+test("counts rewrites by domain, and a changed IP as an edit", () => {
+  const rewrite = (domain, ips) => ({
+    name: `CGPS Rewrite: ${domain}`,
+    action: "override",
+    traffic: buildHostExpression(domain),
+    rule_settings: { override_ips: ips },
+  });
+  const before = [
+    rewrite("medium.com", ["162.159.152.4"]),
+    rewrite("linkedin.com", ["1.1.1.1", "2.2.2.2"]),
+    rewrite("old.com", ["1.1.1.1"]),
+  ];
+  const after = [
+    rewrite("medium.com", ["162.159.153.4"]),
+    rewrite("linkedin.com", ["2.2.2.2", "1.1.1.1"]),
+    rewrite("new.com", ["2.2.2.2"]),
+  ];
+  assert.deepEqual(countChanges(before.flatMap(policyEntries), after.flatMap(policyEntries)), { additions: 1, removals: 1 });
+  assert.equal(countRewriteEdits(before, after), 1);
 });
 
 const rule = (name, precedence, filters = ["dns"]) => ({ name, precedence, filters });
