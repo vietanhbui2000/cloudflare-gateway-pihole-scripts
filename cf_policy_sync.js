@@ -119,7 +119,7 @@ for (const policy of policies) {
 
 // Remove CGPS rewrite policies whose domain is gone from REWRITTEN_DOMAINS.
 // Policies made by hand don't use the CGPS prefix, so they're never deleted.
-// All rewrites are logged as one line, since each domain is its own policy.
+// All rewrites are logged as one "CGPS Rewrites" line, since each domain is its own policy.
 if (REWRITTEN_DOMAINS) {
   const wanted = new Set(policies.map(({ name }) => name));
   const existingRewrites = rules.filter(isRewrite);
@@ -130,7 +130,7 @@ if (REWRITTEN_DOMAINS) {
   }
   logChanges(
     existingRewrites.length ? "updated" : "created",
-    POLICY_NAME.REWRITE_PREFIX.replace(/: $/, ""),
+    "CGPS Rewrites",
     existingRewrites.flatMap(policyEntries),
     rewrites.flatMap(policyEntries),
     countRewriteEdits(existingRewrites, rewrites)
