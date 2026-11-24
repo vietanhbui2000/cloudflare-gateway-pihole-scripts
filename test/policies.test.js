@@ -41,6 +41,10 @@ test("treats only a single http(s) URL as a link to download", () => {
   assert.equal(isSourceUrl("162.159.152.4 medium.com"), false);
 });
 
+test("builds exact-host Gateway expressions for rewrites", () => {
+  assert.equal(buildHostExpression("linkedin.com"), 'any(dns.domains[*] matches "linkedin.com")');
+});
+
 test("builds the inline Gateway expression", () => {
   assert.equal(
     buildDomainsExpression(["a.example.com", "b.example.com"]),
